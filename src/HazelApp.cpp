@@ -198,7 +198,7 @@ int HazelEditor::handle(int event) {
         }
         
         // Bash-style keybindings
-        if (key == '`' && (Fl::event_state() & FL_COMMAND)) {
+        if ((key == '`' || key == '~') && (Fl::event_state() & FL_COMMAND)) {
             app_->toggleTerminal();
             return 1;
         }
@@ -583,7 +583,6 @@ void HazelApp::evaluateCurrentBlock() {
     ctx->at_bottom = at_bottom;
     ctx->is_terminal = false;
     
-    printf("Calling eval_cb_! input=%s\n", input);
     eval_cb_(input, ctx, user_data_);
     free(input);
 }
