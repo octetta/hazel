@@ -37,9 +37,23 @@ public:
         ok_ = new Fl_Button(330, 315, 80, 30, "OK");
         
         int num_fonts = Fl::set_fonts("-*");
+        const char* current_font_name = Fl::get_font_name(current_cfg.font);
+        int selected_idx = 1;
         for (int i = 0; i < num_fonts; i++) {
             const char* name = Fl::get_font_name((Fl_Font)i);
-            if (name) font_browser_->add(name);
+            if (name) {
+                font_browser_->add(name);
+                if (current_font_name && strcmp(name, current_font_name) == 0) {
+                    selected_idx = font_browser_->size();
+                }
+            }
+        }
+        font_browser_->select(selected_idx);
+        
+        if (current_cfg.input_bg == FL_WHITE) {
+            theme_choice_->value(0); // Light
+        } else {
+            theme_choice_->value(1); // Dark
         }
         
         font_browser_->callback([](Fl_Widget*, void* v) {
