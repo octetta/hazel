@@ -4,12 +4,7 @@
 #include <iostream>
 #include <string.h>
 
-Fl_Text_Display::Style_Table_Entry HazelApp::styletable[] = {
-    { FL_BLACK,      FL_COURIER,        14, Fl_Text_Display::ATTR_BGCOLOR_EXT, FL_WHITE }, // A - Input
-    { FL_BLACK,      FL_COURIER,        14, Fl_Text_Display::ATTR_BGCOLOR_EXT, fl_rgb_color(240, 240, 245) }, // B - Output
-    { FL_DARK_RED,   FL_COURIER_BOLD,   14, Fl_Text_Display::ATTR_BGCOLOR_EXT, fl_rgb_color(255, 230, 230) }, // C - Error
-    { FL_DARK_GREEN, FL_COURIER_ITALIC, 14, Fl_Text_Display::ATTR_BGCOLOR_EXT, fl_rgb_color(240, 255, 240) }  // D - Meta
-};
+
 
 static void style_update_cb(int pos, int nInserted, int nDeleted, int nRestyled, const char* deletedText, void* cbArg) {
     HazelApp* app = (HazelApp*)cbArg;
@@ -214,10 +209,20 @@ HazelApp::HazelApp(const char* title, hazel_eval_cb_t cb, void* user_data)
     buffer_ = new Fl_Text_Buffer();
     style_buffer_ = new Fl_Text_Buffer();
     
+    config_.font = FL_COURIER;
+    config_.font_size = 14;
+    config_.input_bg = FL_WHITE;
+    config_.output_bg = fl_rgb_color(240, 240, 245);
+    config_.error_bg = fl_rgb_color(255, 230, 230);
+    config_.markdown_bg = fl_rgb_color(240, 255, 240);
+    config_.text_fg = FL_BLACK;
+    
+    applyConfig();
+    
     editor_ = new HazelEditor(0, 0, 800, 575, this);
     editor_->buffer(buffer_);
     editor_->box(FL_FLAT_BOX);
-    editor_->highlight_data(style_buffer_, styletable, sizeof(styletable)/sizeof(styletable[0]), 'A', 0, 0);
+    editor_->highlight_data(style_buffer_, styletable_, 4, 'A', 0, 0);
     
     status_bar_ = new Fl_Box(0, 575, 800, 25, "");
     status_bar_->box(FL_FLAT_BOX);
@@ -637,5 +642,24 @@ bool HazelApp::checkSaveBeforeQuit() {
 void HazelApp::tryQuit() {
     if (checkSaveBeforeQuit()) {
         win_->hide();
+    }
+}
+
+void HazelApp::applyConfig() {
+    styletable_[0] = { (Fl_Color)config_.text_fg, config_.font, config_.font_size, Fl_Text_Display::ATTR_BGCOLOR_EXT, (Fl_Color)config_.input_bg };
+    styletable_[1] = { (Fl_Color)config_.text_fg, config_.font, config_.font_size, Fl_Text_Display::ATTR_BGCOLOR_EXT, (Fl_Color)config_.output_bg };
+    styletable_[2] = { FL_DARK_RED, config_.font | FL_BOLD, config_.font_size, Fl_Text_Display::ATTR_BGCOLOR_EXT, (Fl_Color)config_.error_bg };
+    styletable_[3] = { FL_DARK_GREEN, config_.font | FL_ITALIC, config_.font_size, Fl_Text_Display::ATTR_BGCOLOR_EXT, (Fl_Color)config_.markdown_bg };
+}
+
+void HazelApp::setConfig(const hazel_config_t* config) {
+    if (!config) return;
+    config_ = *config;
+    applyConfig();
+    if (editor_) {
+        editor_->highlight_data(style_buffer_, styletable_, 4, 'A', 0, 0);
+        editor_->textfont(config_.font);
+        editor_->textsize(config_.font_size);
+        editor_->redraw();
     }
 }

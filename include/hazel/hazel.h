@@ -13,6 +13,18 @@ const char* hazel_version();
 
 typedef struct hazel_app_t hazel_app_t;
 
+typedef struct {
+    int font;
+    int font_size;
+    unsigned int input_bg;
+    unsigned int output_bg;
+    unsigned int error_bg;
+    unsigned int markdown_bg;
+    unsigned int text_fg;
+} hazel_config_t;
+
+void hazel_set_config(hazel_app_t* app, const hazel_config_t* config);
+
 // Context passed to the evaluation callback to append output asynchronously
 typedef struct hazel_ctx_t hazel_ctx_t;
 

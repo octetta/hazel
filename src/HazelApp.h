@@ -49,6 +49,7 @@ public:
     void setDirty(bool dirty);
     bool isDirty() const { return is_dirty_; }
     void tryQuit();
+    void setConfig(const hazel_config_t* config);
     
     void evaluateCurrentBlock();
     char getStyleAt(int pos);
@@ -75,7 +76,9 @@ private:
     void* user_data_;
     
     
-    static Fl_Text_Display::Style_Table_Entry styletable[];
+    Fl_Text_Display::Style_Table_Entry styletable_[4];
+    hazel_config_t config_;
+    void applyConfig();
 };
 
 struct hazel_ctx_t {
