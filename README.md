@@ -1,4 +1,5 @@
 <img src="hazel.png" width="200">
+
 # Hazel
 
 Hazel is a lightweight, embeddable graphical notebook application built in C++ using FLTK. It provides a highly responsive, unified text editor interface with native support for live code evaluation, seamlessly bridging the gap between a standard text editor and a Jupyter-style interactive notebook.
