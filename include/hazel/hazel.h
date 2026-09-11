@@ -21,11 +21,13 @@ typedef struct {
     unsigned int error_bg;
     unsigned int markdown_bg;
     unsigned int text_fg;
+    int parser_mode; // 0 = default, 1 = skred-repl contiguous mode
     int (*on_open)(hazel_app_t* app, const char* filepath, void* user_data);
     int (*on_save)(hazel_app_t* app, const char* filepath, void* user_data);
 } hazel_config_t;
 
 void hazel_set_config(hazel_app_t* app, const hazel_config_t* config);
+void hazel_load_preferences(hazel_app_t* app);
 
 // Context passed to the evaluation callback to append output asynchronously
 typedef struct hazel_ctx_t hazel_ctx_t;
