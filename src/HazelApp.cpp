@@ -196,6 +196,7 @@ public:
             "  Cmd/Ctrl + S : Save File\n"
             "  Cmd/Ctrl + Shift + S : Save As...\n"
             "  Cmd/Ctrl + O : Open File\n"
+            "  Cmd/Ctrl + Shift + O : Open Folder (CWD)\n"
             "  Cmd/Ctrl + , : Preferences\n"
             "  Cmd/Ctrl + / : Help / About\n\n"
             "  Cmd/Ctrl + = / - / 0 : Zoom In / Out / Reset\n\n"
@@ -361,7 +362,11 @@ int HazelEditor::handle(int event) {
             }
             return 1;
         } else if (key == 'o' && (Fl::event_state() & FL_COMMAND)) {
-            app_->openFile();
+            if (Fl::event_state() & FL_SHIFT) {
+                app_->openDirectory();
+            } else {
+                app_->openFile();
+            }
             return 1;
         } else if (key == 'd' && (Fl::event_state() & FL_COMMAND)) {
             int pos = insert_position();
@@ -809,6 +814,17 @@ void HazelApp::openFile() {
         loadFile(fnfc.filename());
     }
 }
+
+void HazelApp::openDirectory() {
+    Fl_Native_File_Chooser fnfc;
+    fnfc.title("Open Folder / Set Working Directory");
+    fnfc.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+    if (fnfc.show() == 0) {
+        if (config_.on_open_dir) {
+            config_.on_open_dir((hazel_app_t*)this, fnfc.filename(), user_data_);
+        }
+    }
+}
 void HazelApp::saveFileAs(const char* filepath) {
     if (config_.on_save) {
         if (config_.on_save((hazel_app_t*)this, filepath, user_data_)) return;
@@ -1200,9 +1216,13 @@ void HazelEditor::draw() {
             return app_->getPendingStyle() ? app_->getPendingStyle() : app_->getStyleAt(p - 1);
         }
         
-        int l_start = buffer()->line_start(p);
-        int l_end = buffer()->line_end(p);
-        if (l_start == l_end) {
+        bool is_empty_line = false;
+        if (p < buffer()->length() && buffer()->char_at(p) == '\n') {
+            if (p == 0 || buffer()->char_at(p - 1) == '\n') is_empty_line = true;
+        } else if (p == buffer()->length()) {
+            if (p == 0 || buffer()->char_at(p - 1) == '\n') is_empty_line = true;
+        }
+        if (is_empty_line) {
             if (p == insert_position() && app_->getPendingStyle() != 0) return app_->getPendingStyle();
             char p_curr = app_->getStyleAt(p);
             if (p_curr == 'A' || p_curr == 'D' || p_curr == 'C' || p_curr == 'B') return p_curr;
@@ -1342,7 +1362,20 @@ void HazelEditor::draw() {
 }
 
 void HazelApp::updateStatusBar() {
+    static int last_pos = -1;
+    static int last_length = -1;
+    static int last_dirty = -1;
     int pos = editor_->insert_position();
+    int length = buffer_->length();
+    int dirty = is_dirty_ ? 1 : 0;
+    
+    if (pos == last_pos && length == last_length && dirty == last_dirty) {
+        return; // Skip recalculation if nothing changed
+    }
+    last_pos = pos;
+    last_length = length;
+    last_dirty = dirty;
+    
     int line = buffer_->count_lines(0, pos) + 1;
     int line_start = buffer_->line_start(pos);
     int col = pos - line_start + 1;
