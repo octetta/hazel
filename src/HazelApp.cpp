@@ -172,7 +172,7 @@ public:
 
 class HelpWindow : public Fl_Double_Window {
 public:
-    HelpWindow(const std::string& app_title, const std::string& app_version, bool is_skred_mode) : Fl_Double_Window(450, 700, "Help & About") {
+    HelpWindow(const std::string& app_title, const std::string& app_version, bool is_skred_mode, const char* ext_html) : Fl_Double_Window(450, 700, "Help & About") {
         this->color(fl_rgb_color(245, 245, 250));
         
         std::string disp_title = app_title.empty() ? "Hazel Editor" : app_title;
@@ -246,6 +246,7 @@ public:
                 "</table>";
         }
         
+        if (ext_html) { help_text += ext_html; }
         disp->value(help_text.c_str());
         
         Fl_Button* close_btn = new Fl_Button(185, 650, 80, 30, "Close");
@@ -1738,7 +1739,7 @@ void HazelApp::loadPreferences() {
 }
 
 void HazelApp::showHelpWindow() {
-    HelpWindow* hw = new HelpWindow(app_title_, app_version_, config_.parser_mode == 1);
+    HelpWindow* hw = new HelpWindow(app_title_, app_version_, config_.parser_mode == 1, config_.help_extension_html);
     hw->callback([](Fl_Widget* w, void*) {
         w->hide();
         Fl::delete_widget(w);
